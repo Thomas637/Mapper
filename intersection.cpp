@@ -3,10 +3,6 @@
 #include <time.h>
 #include <string>
 
-bool intersection(int** arrayList, int amountOfSets) {
-
-}
-
 // data is an array, length is the length of that array
 void printArray(int data[], int length) {
     std::cout << '{';
@@ -87,9 +83,6 @@ int* randomArray(long length, int maximum) {
 
     int* data = new int[length];
 
-    // Random seed
-    srand(time(NULL));
-
     for (long i = 0; i < length; i++) {
         data[i] = rand() % maximum + 1;
     }
@@ -97,25 +90,55 @@ int* randomArray(long length, int maximum) {
     return data;
 }
 
+// Checks whether data1 and data2 have an empty intersection or not
+// in O(n log n + m log m) with n = |data1|, m = |data2|.
+bool intersection(int data1[], int data2[], long n, long m) {
+    mergeSort(data1, 0, n - 1);
+    mergeSort(data2, 0, m - 1);
+
+    long counter1 = 0;
+    long counter2 = 0;
+
+    while (counter1 < n && counter2 < m) {
+        if (data1[counter1] == data2[counter2]) {
+            return true;
+        } else if (data1[counter1] < data2[counter2]) {
+            counter1++;
+        } else {
+            counter2++;
+        }
+    }
+
+    return false;
+}
+
 int main() {
 
-    // We can play around with this
-    // 17 seconds for length 10 million and maximum 1 billion
-    long length = 10;
-    int maximum = 100;
+    // Random seed
+    srand(time(NULL));
 
-    int* data;
-    data = randomArray(length, maximum);
+    long length1 = 10;
+    long length2 = 20;
+    int maximum = 1000;
 
-    std::cout << "Unsorted array:\n\n";
+    int* data1;
+    int* data2;
+    data1 = randomArray(length1, maximum);
+    data2 = randomArray(length2, maximum);
 
-    printArray(data, length);
+    std::cout << "Data 1:\n";
 
-    std::cout << "\n\nSorted array:\n\n";
+    printArray(data1, length1);
 
-    mergeSort(data, 0, length - 1);
+    std::cout << "\nData 2:\n";
 
-    printArray(data, length);
+    printArray(data2, length2);
+
+    if (intersection(data1, data2, length1, length2)) {
+        std::cout << "\nThey intersect!";
+    } else {
+        std::cout << "\nThey do not intersect!";
+    }
 
     return 0;
 }
