@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string>
+#include <algorithm>
 
 // data is an array, length is the length of that array
 void printArray(int data[], int length) {
@@ -91,8 +92,9 @@ int* randomArray(long length, int maximum) {
 }
 
 // Checks whether data1 and data2 have an empty intersection or not
-// in O(n log n + m log m) with n = |data1|, m = |data2|.
-bool intersection(int data1[], int data2[], long n, long m) {
+// in O(n log n + m log m) with n = |data1|, m = |data2|. Returns a
+// yes-certificate or -1 if they do not intersect.
+int intersection(int data1[], int data2[], long n, long m) {
     mergeSort(data1, 0, n - 1);
     mergeSort(data2, 0, m - 1);
 
@@ -101,7 +103,7 @@ bool intersection(int data1[], int data2[], long n, long m) {
 
     while (counter1 < n && counter2 < m) {
         if (data1[counter1] == data2[counter2]) {
-            return true;
+            return data1[counter1];
         } else if (data1[counter1] < data2[counter2]) {
             counter1++;
         } else {
@@ -109,36 +111,72 @@ bool intersection(int data1[], int data2[], long n, long m) {
         }
     }
 
+    return -1;
+}
+
+bool elementOf(int element, int data[], long length) {
+    for (long i = 0; i < length; i++) {
+        if (element == data[i]) {
+            return true;
+        }
+    }
+
     return false;
 }
 
-int main() {
+// Checks the intersection of two random sets. Can only verify yes-instances. Prints the arrays
+// if print is true.
+void testerFunction(long length1, long length2, int maximum, bool print) {
 
     // Random seed
     srand(time(NULL));
-
-    long length1 = 10;
-    long length2 = 20;
-    int maximum = 1000;
 
     int* data1;
     int* data2;
     data1 = randomArray(length1, maximum);
     data2 = randomArray(length2, maximum);
 
-    std::cout << "Data 1:\n";
 
-    printArray(data1, length1);
+    if (print) {
+        std::cout << "Data 1:\n";
 
-    std::cout << "\nData 2:\n";
+        printArray(data1, length1);
 
-    printArray(data2, length2);
+        std::cout << "\nData 2:\n";
 
-    if (intersection(data1, data2, length1, length2)) {
-        std::cout << "\nThey intersect!";
-    } else {
-        std::cout << "\nThey do not intersect!";
+        printArray(data2, length2);
+
+        std::cout << std::endl;
     }
+
+    // Common element or -1 if the intersection is empty
+    int both = intersection(data1, data2, length1, length2);
+
+    if (both == -1) {
+        std::cout << "We did not find an intersection. We do not know if this is a false negative.";
+    } else {
+
+        std::cout << "The algorithm claims intersection in " << both << std::endl;
+
+        bool check1 = elementOf(both, data1, length1);
+        bool check2 = elementOf(both, data2, length2);
+
+        // Checks whether the intersection element is actually in both
+        bool check = check1 && check2;
+
+        if (check) {
+            std::cout << "The algorithm works correctly!";
+        } else {
+            std::cout << "The algorithm does not work correctly!";
+        }
+    }
+}
+
+int main() {
+
+    // Finds an intersection even for n = 10^4, m = 2*10^4 in less than a tenth of a second.
+    testerFunction(10000, 20000, 4000000000, false);
+
 
     return 0;
 }
