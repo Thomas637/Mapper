@@ -24,9 +24,8 @@ void merger(int data[], long left, long right, long mergePoint) {
     long l2 = right - mergePoint; // Length of second subarray
 
     // Saving the subarrays
-    // TODO: I should use dynamic allocation here, this only works with gcc compiler.
-    int first[l1];
-    int second[l2];
+    int* first = new int[l1];
+    int* second = new int[l2];
 
     for (long i = 0; i < l1; i++) {
         first[i] = data[left + i];
