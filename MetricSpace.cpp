@@ -14,7 +14,6 @@ public:
 
 private:
     std::vector<T> points_;
-    friend double eccentric(MetricSpace space, long pointIndex, float r);
 };
 
 class Rn : public MetricSpace<std::vector<double>> {
@@ -52,6 +51,7 @@ public:
 private:
     std::vector<std::vector<double>> points_;
     int dimension_;
+    friend double eccentric(Rn space, long pointIndex, double r);
 };
 
 // Elements are sequences finite (x_1, ..., x_N) with x_i in {A, C, G, T}
@@ -103,10 +103,11 @@ public:
 private:
     std::vector<std::vector<char>> points_;
     int length_;
+    friend double eccentric2(DNA space, long pointIndex, double r);
 };
 
-/*
-double eccentric(MetricSpace space, long pointIndex, float r) {
+
+double eccentric(Rn space, long pointIndex, double r) {
     double sum = 0;
     long N = space.points_.size();
     for (long i = 0; i < N; i++) {
@@ -115,7 +116,16 @@ double eccentric(MetricSpace space, long pointIndex, float r) {
 
     return pow(sum/N, 1/r);
 }
-*/
+
+double eccentric2(DNA space, long pointIndex, double r) {
+    double sum = 0;
+    long N = space.points_.size();
+    for (long i = 0; i < N; i++) {
+        sum += pow(space.d(space.points_[pointIndex], space.points_[i]), r);
+    }
+
+    return pow(sum/N, 1/r);
+}
 
 Rn RnMaker(int dimension, long numberOfPoints) {
 
@@ -163,4 +173,7 @@ DNA DNAMaker(int length, long numberOfPoints) {
 int main() {
     Rn space = RnMaker(3, 100);
     DNA space2 = DNAMaker(10, 100);
+
+    std::cout << "Eccentricity of the 10'th point in R^n with r = 2.1: " << eccentric(space, 10, 2.1) << std::endl;
+    std::cout << "Eccentricity of the 10'th point in a DNA metric space with r = 2.1: " << eccentric2(space2, 10, 2.1) << std::endl;
 }
