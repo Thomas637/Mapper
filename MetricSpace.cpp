@@ -38,7 +38,7 @@ public:
     }
 
     // Distance function
-    double d(std::vector<double> point1, std::vector<double> point2) {
+    double d(const std::vector<double>& point1, const std::vector<double>& point2) {
         double squaredDistance{0};
 
         for (int i = 0; i < dimension_; i++) {
@@ -51,7 +51,7 @@ public:
 private:
     std::vector<std::vector<double>> points_;
     int dimension_;
-    friend double eccentric(Rn space, long pointIndex, double r);
+    friend double eccentric(Rn& space, long pointIndex, double r);
 };
 
 // Elements are sequences finite (x_1, ..., x_N) with x_i in {A, C, G, T}
@@ -89,7 +89,7 @@ public:
     }
 
     // Distance function
-    double d(std::vector<char> point1, std::vector<char> point2) {
+    double d(const std::vector<char>& point1, const std::vector<char>& point2) {
         int counter{0};
         for (int i = 0; i < point1.size(); i++) {
             if (point1[i] != point2[i]) {
@@ -103,11 +103,11 @@ public:
 private:
     std::vector<std::vector<char>> points_;
     int length_;
-    friend double eccentric2(DNA space, long pointIndex, double r);
+    friend double eccentric2(DNA& space, long pointIndex, double r);
 };
 
 
-double eccentric(Rn space, long pointIndex, double r) {
+double eccentric(Rn& space, long pointIndex, double r) {
     double sum = 0;
     long N = space.points_.size();
     for (long i = 0; i < N; i++) {
@@ -117,7 +117,7 @@ double eccentric(Rn space, long pointIndex, double r) {
     return pow(sum/N, 1/r);
 }
 
-double eccentric2(DNA space, long pointIndex, double r) {
+double eccentric2(DNA& space, long pointIndex, double r) {
     double sum = 0;
     long N = space.points_.size();
     for (long i = 0; i < N; i++) {
