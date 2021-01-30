@@ -17,7 +17,6 @@ public:
         size_t N = points_.size();
 
         for (size_t i = 0; i < N; i++) {
-            std::cout << distance(points_[pointIndex], points_[i]) << std::endl;
             sum += std::pow(distance(points_[pointIndex], points_[i]), r);
         }
 
@@ -63,9 +62,6 @@ public:
 
         return std::sqrt(squaredDistance);
     }
-
-private:
-    std::vector<std::vector<double>> points_;
 };
 
 
@@ -120,12 +116,9 @@ public:
                 counter++;
             }
         }
-        std::cout << counter << std::endl;
+
         return counter;
     }
-
-private:
-    std::vector<std::vector<char>> points_;
 };
 
 template<size_t m>
