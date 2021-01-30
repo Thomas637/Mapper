@@ -10,23 +10,38 @@
 template<typename T>
 class MetricSpace {
 public:
-    double d();
+    virtual double distance(const T& point1, const T& point2) = 0;
 
-private:
+    double calculateEccentricity(size_t pointIndex, double r) {
+        double sum{0};
+        size_t N = points_.size();
+
+        for (size_t i = 0; i < N; i++) {
+            sum += std::pow(distance(points_[pointIndex], points_[i]), r);
+        }
+
+        return std::pow(sum/N, 1/r);
+    }
+
+protected:
     std::vector<T> points_;
 };
 
+template<size_t n>
 class Rn : public MetricSpace<std::vector<double>> {
 public:
-    using MetricSpace::d; // So we can overload the distance function
 
     // Constructor
-    Rn(std::vector<std::vector<double>> points, int n): dimension_{n} {
+    Rn(std::vector<std::vector<double>> points) {
         points_ = points;
+        validate();
+    }
 
+    // Checks whether all points have dimension n
+    void validate() {
         bool invalidDimension = false;
-        for (long i = 0; i < points_.size(); i++) {
-            if (points_[i].size() != dimension_) {
+        for (size_t i = 0; i < points_.size(); i++) {
+            if (points_[i].size() != n) {
                 invalidDimension = true;
                 break;
             }
@@ -38,39 +53,34 @@ public:
     }
 
     // Distance function
-    double d(const std::vector<double>& point1, const std::vector<double>& point2) {
+    double distance(const std::vector<double>& point1, const std::vector<double>& point2) {
         double squaredDistance{0};
 
-        for (int i = 0; i < dimension_; i++) {
+        for (size_t i = 0; i < n; i++) {
             squaredDistance += (point1[i] - point2[i])*(point1[i] - point2[i]);
         }
 
-        return sqrt(squaredDistance);
+        return std::sqrt(squaredDistance);
     }
-
-private:
-    std::vector<std::vector<double>> points_;
-    int dimension_;
-    friend double eccentric(Rn& space, long pointIndex, double r);
 };
+
 
 // Elements are sequences finite (x_1, ..., x_N) with x_i in {A, C, G, T}
 // and the distance d(x, y) is the amount of i for which x_i != y_i.
 class DNA: public MetricSpace<std::vector<char>> {
 public:
-    using MetricSpace::d;
 
     // Constructor
-    DNA(std::vector<std::vector<char>> points, int length): length_{length} {
+    DNA(std::vector<std::vector<char>> points) {
         points_ = points;
+        validate();
+    }
 
-        bool invalidDimension = false;
+    // Checks whether the right letters are used
+    void validate() {
         bool invalidCharacter = false;
 
         for (long i = 0; i < points_.size(); i++) {
-            if (points_[i].size() != length_) {
-                invalidDimension = true;
-            }
             for (int j = 0; j < points_[i].size(); j++) {
                 if ( points_[i][j] != 'A' && points_[i][j] != 'C' && points_[i][j] != 'G' && points_[i][j] != 'T' ) {
                     invalidCharacter = true;
@@ -78,20 +88,30 @@ public:
             }
         }
 
-        if (invalidDimension) {
-            throw std::invalid_argument("At least one DNA strand is too long or too short.");
-        }
-
         if (invalidCharacter) {
             throw std::invalid_argument("At least one DNA strand contains a character not equal to A, C, G or T.");
         }
-
     }
 
-    // Distance function
-    double d(const std::vector<char>& point1, const std::vector<char>& point2) {
-        int counter{0};
-        for (int i = 0; i < point1.size(); i++) {
+
+    // Distance function (is actually always an integer)
+    double distance(const std::vector<char>& point1, const std::vector<char>& point2) {
+        size_t minSize;
+        size_t maxSize;
+
+        if (point1.size() < point2.size()) {
+            minSize = point1.size();
+            maxSize = point2.size();
+        } else {
+            minSize = point2.size();
+            maxSize = point1.size();
+        }
+
+        // If DNA strands have different lengths, we add one to the distance if
+        // one DNA strand has a nucleobasis at an index and the other does not.
+        double counter{maxSize - minSize};
+
+        for (size_t i = 0; i < minSize; i++) {
             if (point1[i] != point2[i]) {
                 counter++;
             }
@@ -99,35 +119,10 @@ public:
 
         return counter;
     }
-
-private:
-    std::vector<std::vector<char>> points_;
-    int length_;
-    friend double eccentric2(DNA& space, long pointIndex, double r);
 };
 
-
-double eccentric(Rn& space, long pointIndex, double r) {
-    double sum = 0;
-    long N = space.points_.size();
-    for (long i = 0; i < N; i++) {
-        sum += pow(space.d(space.points_[pointIndex], space.points_[i]), r);
-    }
-
-    return pow(sum/N, 1/r);
-}
-
-double eccentric2(DNA& space, long pointIndex, double r) {
-    double sum = 0;
-    long N = space.points_.size();
-    for (long i = 0; i < N; i++) {
-        sum += pow(space.d(space.points_[pointIndex], space.points_[i]), r);
-    }
-
-    return pow(sum/N, 1/r);
-}
-
-Rn RnMaker(int dimension, long numberOfPoints) {
+template<size_t m>
+Rn<m> RnMaker(long numberOfPoints) {
 
     std::vector<std::vector<double>> points;
 
@@ -140,16 +135,16 @@ Rn RnMaker(int dimension, long numberOfPoints) {
     // Creating the random points
     for (long i = 0; i < numberOfPoints; i++) {
         std::vector<double> point;
-        for (int j = 0; j < dimension; j++) {
+        for (int j = 0; j < m; j++) {
             point.push_back(uniform(randomEngine));
         }
         points.push_back(point);
     }
 
-    return Rn(points, dimension);
+    return Rn<m>(points);
 }
 
-DNA DNAMaker(int length, long numberOfPoints) {
+DNA DNAMaker(int maxLength, long numberOfPoints) {
 
     std::vector<std::vector<char>> points;
 
@@ -160,6 +155,7 @@ DNA DNAMaker(int length, long numberOfPoints) {
 
     // Creating the random points
     for (long i = 0; i < numberOfPoints; i++) {
+        int length = rand() % maxLength + 1;
         std::vector<char> point;
         for (int j = 0; j < length; j++) {
             point.push_back(characters[rand() % 4]);
@@ -167,13 +163,13 @@ DNA DNAMaker(int length, long numberOfPoints) {
         points.push_back(point);
     }
 
-    return DNA(points, length);
+    return DNA(points);
 }
 
 int main() {
-    Rn space = RnMaker(3, 100);
+    Rn<3> space = RnMaker<3>(100);
     DNA space2 = DNAMaker(10, 100);
 
-    std::cout << "Eccentricity of the 10'th point in R^n with r = 2.1: " << eccentric(space, 10, 2.1) << std::endl;
-    std::cout << "Eccentricity of the 10'th point in a DNA metric space with r = 2.1: " << eccentric2(space2, 10, 2.1) << std::endl;
+    std::cout << "Eccentricity of the 10'th point in R^n with r = 2.1: " << space.calculateEccentricity(10, 2.1) << std::endl;
+    std::cout << "Eccentricity of the 10'th point in a DNA metric space with r = 2.1: " << space2.calculateEccentricity(10, 2.1) << std::endl;
 }
