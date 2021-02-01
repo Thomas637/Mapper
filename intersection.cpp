@@ -1,136 +1,165 @@
 #include <iostream>
 #include <stdlib.h>
+#include <vector>
+#include <algorithm>
 #include <time.h>
-#include <string>
 
-bool intersection(int** arrayList, int amountOfSets) {
+/*
+Takes a set {A_1, ..., A_n} of ordered subsets of N and a vector (x_1, ..., x_n).
+Denote a_i for the x_i'th element of A_i. Let m be the minimum of {a_i}. This function
+returns {i | a_i = m}.
+*/
+std::vector<int> helperMinimum(std::vector<std::vector<long>>& sets, std::vector<long>& counters) {
 
-}
+    // Calculating m.
+    std::vector<long> values{};
 
-// data is an array, length is the length of that array
-void printArray(int data[], int length) {
-    std::cout << '{';
-    for (long i = 0; i < length - 1; i++) {
-        std::cout << data[i] << ", ";      // Arrays and pointers are basically the same, [] is dereferencing
-    }
-    std::cout << data[length - 1] << '}';
-}
-
-// Given an array data and sorted subarrays data[left, ..., mergePoint]
-// data[mergePoint + 1, right], returns data with data[left, ..., right]
-// sorted and the rest left alone.
-void merger(int data[], long left, long right, long mergePoint) {
-    long l1 = mergePoint - left + 1; // Length of first subarray
-    long l2 = right - mergePoint; // Length of second subarray
-
-    // Saving the subarrays
-    int* first = new int[l1];
-    int* second = new int[l2];
-
-    for (long i = 0; i < l1; i++) {
-        first[i] = data[left + i];
+    for (int i = 0; i < counters.size(); i++) {
+        values.push_back(sets[i][counters[i]]);
     }
 
-    for (long i = 0; i < l2; i++) {
-        second[i] = data[mergePoint + 1 + i];
-    }
+    // std::min_element returns a pointer/iterator to the value
+    long minimum = *std::min_element(values.begin(), values.end());
 
-    // We now have k iterate within data, l iterate over the first subarray
-    // and m over the second subarray
-    long k = left;
-    long l = 0;
-    long m = 0;
+    std::vector<int> results;
 
-    // To ensure neither l or m goes out of bounds
-    while (l < l1 && m < l2) {
-        if (first[l] <= second[m]) { // We put first[l] in the array and then go to the next
-            data[k] = first[l];      // entry in the first subarray
-            l++;
-        } else {
-            data[k] = second[m];
-            m++;
+    for (int i = 0; i < counters.size(); i++) {
+        if (sets[i][counters[i]] == minimum) {
+            results.push_back(i);
         }
-        k++;
     }
 
-    // In case m went out of bounds, but l is not finished yet
-    while (l < l1) {
-        data[k] = first[l];
-        l++;
-        k++;
-    }
-
-    while (m < l2) {
-        data[k] = second[m];
-        m++;
-        k++;
-    }
-
+    return results;
 }
 
-// Takes an array data and sorts array[left, right]
-void mergeSort(int data[], long left, long right) {
+/*
+Returns false if one of the counters exceeds the elements in that set.
+*/
+bool helperCheck(std::vector<std::vector<long>>& sets, std::vector<long>& counters) {
+    bool check = true;
 
-    // Nothing to do here
-    if (left >= right) {
-        return;
+    for (int i = 0; i < sets.size(); i++) {
+        if (counters[i] == sets[i].size()) {
+            check = false;
+        }
     }
 
-    long mergePoint = (left + right - 1)/2;
-    mergeSort(data, left, mergePoint);
-    mergeSort(data, mergePoint + 1, right);
-    merger(data, left, right, mergePoint);
+    return check;
 }
 
-// Produces a pointer to a random array of length length with values between 1 and maximum.
-int* randomArray(long length, int maximum) {
+/*
+Takes a list of subsets of the natural numbers, and returns
+a yes-certificate if the intersection is non-empty, or -1
+if the intersection is empty.
+*/
+long intersection(std::vector<std::vector<long>>& sets) {
 
-<<<<<<< Updated upstream
-    int* data = new int[length];
-=======
+    // Each set gets a counter that starts at zero,
+    // and sorts the sets.
+    std::vector<long> counters{};
+    for (int i = 0; i < sets.size(); i++) {
+        counters.push_back(0);
+        std::sort(sets[i].begin(), sets[i].end());
+    }
+
+    while (helperCheck(sets, counters)) {
+
+        std::vector<int> results = helperMinimum(sets, counters);
+
+        if (results.size() == counters.size()) {
+            return sets[0][counters[0]]; // Apparently the minimum is in all sets
+        } else {
+            for (int i = 0; i < results.size(); i++) {
+                counters[results[i]]++; // The elements at these indices are certainly not in the intersection, so we
+                                        // can move on to the next element.
+            }
+        }
+    }
+
+    return -1;
+}
+
+/*
+Checks whether the intersection function correctly identifies that
+there is no intersection between A_n = {i | i < maxInt and i = n mod moduloClass}.
+*/
+void negativeTester(int moduloClass, long maxInt) {
+    // Making the sets
+    std::vector<std::vector<long>> sets{};
+
+    for (int n = 0; n < moduloClass; n++) {
+        std::vector<long> setn{};
+        for (int i = 0; i < maxInt; i++) {
+            if (i%moduloClass == n) {
+                setn.push_back(i);
+            }
+        }
+
+        sets.push_back(setn);
+    }
+
+    long result = intersection(sets);
+
+    if (result == -1) {
+        std::cout << "Correctly identifies the intersection is empty!" << std::endl;
+    } else {
+        std::cout << "Wrong result, it finds " << result << " in the intersection!" << std::endl;
+    }
+}
+
+bool elementOf(long element, std::vector<long>& vec) {
+    // std::find returns a pointer to the element, or the end of the range
+    // if it is not present.
+    return std::find(vec.begin(), vec.end(), element) != vec.end();
+}
+
 /*
 Creates random sets and runs intersection(). Verifies yes-certificates.
 */
 void positiveTester(int numberOfSets, long maxValue, long length) {
->>>>>>> Stashed changes
 
-    // Random seed
+    // Creating the sets
     srand(time(NULL));
 
-    for (long i = 0; i < length; i++) {
-        data[i] = rand() % maximum + 1;
+    std::vector<std::vector<long>> sets{};
+
+    for (int i = 0; i < numberOfSets; i++) {
+        std::vector<long> seti{};
+
+        for (int j = 0; j < length; j++) {
+            seti.push_back(rand() % maxValue);
+        }
+
+        sets.push_back(seti);
     }
 
-    return data;
+    long result = intersection(sets);
+
+    if (result == -1) {
+        std::cout << "We could not find an element in the intersection. This may be a false negative." << std::endl;
+    } else {
+        // Verify yes-certificate
+        bool inEverySet = true;
+        for (int i = 0; i < numberOfSets; i++) {
+            if (!elementOf(result, sets[i])) {
+                inEverySet = false;
+            }
+        }
+
+        if (inEverySet) {
+            std::cout << "We correctly found that " << result << " is in every set." << std::endl;
+        } else {
+            std::cout << "We incorrectly found that " << result << "is in every set." << std::endl;
+        }
+
+    }
+
+
 }
 
-int main() {
-
-    // We can play around with this
-    // 17 seconds for length 10 million and maximum 1 billion
-    long length = 10;
-    int maximum = 100;
-
-    int* data;
-    data = randomArray(length, maximum);
-
-    std::cout << "Unsorted array:\n\n";
-
-    printArray(data, length);
-
-    std::cout << "\n\nSorted array:\n\n";
-
-    mergeSort(data, 0, length - 1);
-
-<<<<<<< Updated upstream
-    printArray(data, length);
-
-    return 0;
-=======
 int main() {
     // A 100 sets of 1000 integers.
     negativeTester(100, 100000);
     // 10 sets of 1000 integers.
     positiveTester(10, 1000, 1000);
->>>>>>> Stashed changes
 }
