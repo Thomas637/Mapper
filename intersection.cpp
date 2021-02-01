@@ -94,6 +94,8 @@ void negativeTester(int moduloClass, long maxInt) {
                 setn.push_back(i);
             }
         }
+
+        sets.push_back(setn);
     }
 
     long result = intersection(sets);
@@ -157,13 +159,5 @@ void positiveTester(int numberOfSets, long maxValue, long length) {
 
 int main() {
     negativeTester(10, 1000);
-
-    std::vector<long> set1{3, 0, 4, 4};
-    std::vector<long> set2{6, 2, 1, 4};
-
-    std::vector<std::vector<long>> sets{set1, set2};
-
-    std::cout << intersection(sets) << std::endl;
-
     positiveTester(10, 1000, 1000);
 }
