@@ -114,7 +114,7 @@ bool elementOf(long element, std::vector<long>& vec) {
 }
 
 /*
-Creates random sets and runs intersection(). Verifies the yes-certificate.
+Creates random sets and runs intersection(). Verifies yes-certificates.
 */
 void positiveTester(int numberOfSets, long maxValue, long length) {
 
@@ -158,6 +158,8 @@ void positiveTester(int numberOfSets, long maxValue, long length) {
 }
 
 int main() {
-    negativeTester(10, 1000);
+    // A 100 sets of 1000 integers.
+    negativeTester(100, 100000);
+    // 10 sets of 1000 integers.
     positiveTester(10, 1000, 1000);
 }
