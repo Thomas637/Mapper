@@ -85,7 +85,14 @@ void mergeSort(int data[], long left, long right) {
 // Produces a pointer to a random array of length length with values between 1 and maximum.
 int* randomArray(long length, int maximum) {
 
+<<<<<<< Updated upstream
     int* data = new int[length];
+=======
+/*
+Creates random sets and runs intersection(). Verifies yes-certificates.
+*/
+void positiveTester(int numberOfSets, long maxValue, long length) {
+>>>>>>> Stashed changes
 
     // Random seed
     srand(time(NULL));
@@ -115,7 +122,15 @@ int main() {
 
     mergeSort(data, 0, length - 1);
 
+<<<<<<< Updated upstream
     printArray(data, length);
 
     return 0;
+=======
+int main() {
+    // A 100 sets of 1000 integers.
+    negativeTester(100, 100000);
+    // 10 sets of 1000 integers.
+    positiveTester(10, 1000, 1000);
+>>>>>>> Stashed changes
 }
